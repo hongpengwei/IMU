@@ -81,13 +81,13 @@ for batch_size in batch_sizes:
     )
     # 創建一個新的模型
     model = Sequential()
-    model.add(GRU(128, return_sequences=True, input_shape=(sequence_length, num_features)))
+    model.add(GRU(256, return_sequences=True, input_shape=(sequence_length, num_features)))
     model.add(Dropout(0.5))
-    model.add(GRU(128, return_sequences=True))
+    model.add(GRU(256, return_sequences=True))
     model.add(Dropout(0.5))
-    model.add(GRU(128, return_sequences=True))
+    model.add(GRU(256, return_sequences=True))
     model.add(Dropout(0.5))
-    model.add(GRU(128))  # 最後一層GRU
+    model.add(GRU(256))  # 最後一層GRU
     model.add(Dropout(0.5))
     model.add(Dense(1))
 
