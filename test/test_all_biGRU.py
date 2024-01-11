@@ -10,35 +10,6 @@ from keras.optimizers import Adam
 from keras.callbacks import ReduceLROnPlateau
 import tensorflow as tf
 
-
-
-class GlobalPosLoss(tf.keras.losses.Loss):
-    def __init__(self, mode='full', history=None, reduction=tf.keras.losses.Reduction.NONE):
-        """
-        Calculate position loss in the global coordinate frame
-        Target: Global Velocity
-        Prediction: Global Velocity
-        """
-        super(GlobalPosLoss, self).__init__(reduction=reduction)
-        self.mse_loss = tf.keras.losses.MeanSquaredError(reduction=tf.keras.losses.Reduction.NONE)
-
-        assert mode in ['full', 'part']
-        self.mode = mode
-        if self.mode == 'part':
-            assert history is not None
-            self.history = history
-        elif self.mode == 'full':
-            self.history = 1
-
-    def call(self, pred, targ):
-        gt_pos = tf.cumsum(targ[:, 1:, ], axis=1)
-        pred_pos = tf.cumsum(pred[:, 1:, ], axis=1)
-        if self.mode == 'part':
-            gt_pos = gt_pos[:, self.history:, :] - gt_pos[:, :-self.history, :]
-            pred_pos = pred_pos[:, self.history:, :] - pred_pos[:, :-self.history, :]
-        loss = self.mse_loss(pred_pos, gt_pos)
-        return tf.reduce_mean(loss, axis=None)
-
 # 定义 Adam 优化器并设置学习率
 optimizers = tf.keras.optimizers.Adam(learning_rate=0.001)
 
