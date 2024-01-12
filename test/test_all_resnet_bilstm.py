@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from keras.models import Model
 
-from keras.layers import LSTM, Dense, Dropout, Bidirectional,Input, Conv1D, MaxPooling1D, Flatten, Dense, LSTM, Bidirectional
+from keras.layers import LSTM, Dense, Dropout, Bidirectional,Input, Conv1D, MaxPooling1D, Flatten, Dense, LSTM, Bidirectional, Add
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import os
@@ -39,12 +39,12 @@ for file in files:
     # scaler = MinMaxScaler()
     # data[['gyro_x', 'gyro_y', 'gyro_z', 'acce_x', 'acce_y', 'acce_z', 'Distance']] = scaler.fit_transform(data[['gyro_x', 'gyro_y', 'gyro_z', 'acce_x', 'acce_y', 'acce_z', 'Distance']])
     
-    for i in range(0, len(data) - sequence_length, 5):
+    for i in range(0, len(data) - sequence_length, sequence_length):
         distance = np.sum(data['Distance'].values[i:i+sequence_length])
         distances.append(distance)
 
     # 分割資料成200筆一組的序列
-    for i in range(0, len(data) - sequence_length, 5):
+    for i in range(0, len(data) - sequence_length, sequence_length):
         seq = data[['gyro_x', 'gyro_y', 'gyro_z', 'linacce_x', 'linacce_y', 'linacce_z']].values[i:i+sequence_length]  # 根據實際特徵名稱調整
         sequence_data.append(seq)
     print(len(sequence_data))
@@ -71,7 +71,7 @@ np.random.seed(42)
 for batch_size in batch_sizes:
 
     # Specify the path to save the best model checkpoint
-    checkpoint_path = 'checkpoints/best_model_resnet_bilstm_segementation_{}.h5'.format(batch_size)
+    checkpoint_path = 'checkpoints/best_model_resnet_bilstm_segementation_two_layers_{}.h5'.format(batch_size)
     # Define the ModelCheckpoint callback
     model_checkpoint = ModelCheckpoint(
         checkpoint_path,
@@ -86,10 +86,13 @@ for batch_size in batch_sizes:
         x = Conv1D(filters, kernel_size, activation='relu', padding='same')(input_tensor)
         x = Conv1D(filters, kernel_size, activation='relu', padding='same')(x)
         x = Conv1D(filters, kernel_size, activation='relu', padding='same')(x)
+        shortcut = input_tensor
+        x = Add()([x, shortcut])  # Adding a shortcut connection
         return x
 
+
     # Input layer
-    input_imu = Input(shape=(200, 9))  # 200 frames of IMU data (acceleration, velocity, magnetic field)
+    input_imu = Input(shape=(200, 6))  # 200 frames of IMU data (acceleration, velocity, magnetic field)
 
     # Feature Detection (ResNet)
     resnet_block = build_resnet_block(input_imu)
@@ -118,7 +121,7 @@ for batch_size in batch_sizes:
     # Print the model summary
     model.summary()
     history = model.fit(X_train, y_train, epochs=100, batch_size=batch_size, validation_data=(X_val, y_val),callbacks=[model_checkpoint, scheduler])
-    model.save('resnet_bilstm_segementation_32.h5')
+    model.save('resnet_bilstm_segementation_32_two_layers_.h5')
     # 儲存損失
     losses.append(history.history['loss'])
     # model_name = "1121_{}.h5".format(batch_size)
@@ -133,7 +136,7 @@ for batch_size in batch_sizes:
     # 儲存圖片
     if not os.path.exists('plots'):
         os.makedirs('plots')
-    img_path = "plots/resnet_bilstm_segementation_{}.png".format(batch_size)
+    img_path = "plots/resnet_bilstm_segementation_two_layers_{}.png".format(batch_size)
     plt.savefig(img_path)
 
     # 顯示圖片 (如果需要)
@@ -151,5 +154,5 @@ plt.grid(True)
 # 儲存圖片
 if not os.path.exists('plots'):
     os.makedirs('plots')
-plt.savefig('plots/_resnet_bilstm_segementation_32.png')
+plt.savefig('plots/_resnet_bilstm_segementation_32_two_layers_.png')
 plt.show()
