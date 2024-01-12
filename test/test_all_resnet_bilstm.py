@@ -71,7 +71,7 @@ np.random.seed(42)
 for batch_size in batch_sizes:
 
     # Specify the path to save the best model checkpoint
-    checkpoint_path = 'checkpoints/best_model_0111_four_layers_resnet_bilstm_segementation_5frames_{}.h5'.format(batch_size)
+    checkpoint_path = 'checkpoints/best_model_resnet_bilstm_segementation_{}.h5'.format(batch_size)
     # Define the ModelCheckpoint callback
     model_checkpoint = ModelCheckpoint(
         checkpoint_path,
@@ -100,8 +100,8 @@ for batch_size in batch_sizes:
     # Trajectory Estimation (Bi-LSTM)
     lstm_output = Bidirectional(LSTM(units=256, return_sequences=True))(resnet_output)
     lstm_output = Dropout(0.5)(lstm_output)  # Add Dropout layer
-    lstm_output = Bidirectional(LSTM(units=256, return_sequences=True))(lstm_output)
-    lstm_output = Dropout(0.5)(lstm_output)  # Add Dropout layer
+    # lstm_output = Bidirectional(LSTM(units=256, return_sequences=True))(lstm_output)
+    # lstm_output = Dropout(0.5)(lstm_output)  # Add Dropout layer
     lstm_output = Bidirectional(LSTM(units=256, return_sequences=True))(lstm_output)
     lstm_output = Dropout(0.5)(lstm_output)  # Add Dropout layer
     lstm_output = Bidirectional(LSTM(units=256))(lstm_output)
@@ -118,7 +118,7 @@ for batch_size in batch_sizes:
     # Print the model summary
     model.summary()
     history = model.fit(X_train, y_train, epochs=100, batch_size=batch_size, validation_data=(X_val, y_val),callbacks=[model_checkpoint, scheduler])
-    model.save('0111_four_layers_resnet_bilstm_segementation_5frames_32.h5')
+    model.save('resnet_bilstm_segementation_32.h5')
     # 儲存損失
     losses.append(history.history['loss'])
     # model_name = "1121_{}.h5".format(batch_size)
@@ -133,7 +133,7 @@ for batch_size in batch_sizes:
     # 儲存圖片
     if not os.path.exists('plots'):
         os.makedirs('plots')
-    img_path = "plots/0111_four_layers_resnet_bilstm_segementation_5frames__{}.png".format(batch_size)
+    img_path = "plots/resnet_bilstm_segementation_{}.png".format(batch_size)
     plt.savefig(img_path)
 
     # 顯示圖片 (如果需要)
@@ -143,7 +143,7 @@ for batch_size in batch_sizes:
 plt.figure(figsize=(10, 6))
 for i, batch_size in enumerate(batch_sizes):
     plt.plot(losses[i], label=f'Batch Size {batch_size}')
-plt.title('Training Loss Comparison for Different Batch Sizes (BiLSTM)')
+plt.title('Training Loss Comparison for Different Batch Sizes (Resnet_BiLSTM)')
 plt.xlabel('Epochs')
 plt.ylabel('Loss(m)')
 plt.legend()
@@ -151,5 +151,5 @@ plt.grid(True)
 # 儲存圖片
 if not os.path.exists('plots'):
     os.makedirs('plots')
-plt.savefig('plots/0111_four_layers_resnet_bilstm_segementation_5frames_.png')
+plt.savefig('plots/_resnet_bilstm_segementation_32.png')
 plt.show()
